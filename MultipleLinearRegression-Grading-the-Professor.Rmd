@@ -1,0 +1,68 @@
+
+---
+title: "Multiple Linear Regression"
+author: "Shreyu Umapathy"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(openintro)
+library(GGally)
+library(broom)
+```
+
+
+
+```{r}
+glimpse(evals)
+```
+
+## The distribution of the `score` variable is slightly left-skewed, with most scores concentrated near the higher end (around 4 or 5). This suggests that students tend to rate professors favorably. This might be expected if students generally have a positive experience or if there's a bias toward rating leniently.
+
+```{r}
+ggplot(evals, aes(x = age, y = score)) + 
+  geom_point()
+
+ggplot(evals, aes(x = cls_students, y = cls_perc_eval)) + 
+  geom_point()
+```
+
+## The first plot explores the relationship between professor age and course evaluations, while the second shows the relation between class size and response rate.
+
+```{r}
+m_bty_gen <- lm(score ~ bty_avg + gender, data = evals)
+tidy(m_bty_gen)
+```
+
+## Beauty remains a statistically significant predictor of evaluation score after accounting for gender. The coefficient for `bty_avg` did not change substantially. Male professors tend to receive slightly lower scores, holding beauty constant.
+
+```{r}
+m_bty_rank <- lm(score ~ bty_avg + rank, data = evals)
+tidy(m_bty_rank)
+```
+
+## R uses dummy coding to represent categorical variables with more than two levels. For example, `ranktenure track` and `ranktenured` are compared to the baseline level `teaching`.
+
+```{r}
+m_full <- lm(score ~ rank + gender + ethnicity + language + age + cls_perc_eval +
+             cls_students + cls_level + cls_profs + cls_credits + bty_avg, data = evals)
+summary(m_full)
+```
+
+## The variable `ethnicity` has a high p-value, indicating it's not statistically significant in the model. Removing it improves adjusted \( R^2 \) slightly, suggesting it doesn't explain unique variance. If coefficients do not change much after removal, `ethnicity` likely isn't collinear with other predictors.
+
+```{r}
+m_final <- lm(score ~ rank + gender + language + age + cls_perc_eval + bty_avg, data = evals)
+summary(m_final)
+```
+
+**Model Interpretation**: Higher beauty ratings, younger age, higher evaluation response rates, and teaching rank are associated with higher course evaluations.
+
+**Regression Assumptions**: Residuals are approximately normal and show constant variance.
+
+**Generalizability**: Because data were only collected from one university and the same professors across courses, results may not generalize to other institutions.
+
